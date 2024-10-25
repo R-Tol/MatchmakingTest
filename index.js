@@ -33,20 +33,15 @@ app.post("/publish", (req, res) => {
 
 // Endpoint per ottenere la lista dei server
 app.get("/list", (req, res) => {
-    const { game, timeout } = req.query;
 
-    // Convertiamo timeout da stringa a numero
-    const parsedTimeout = parseInt(timeout, 10);
-    if (isNaN(parsedTimeout)) {
-        return res.status(400).json({ error: "Il valore di timeout non è un numero valido." });
+    const { game } = req.query;
+    if (!game || !servers[game]) {
+        return res.json([]);
     }
-
-    console.log("Gioco:", game);
-    console.log("Timeout:", parsedTimeout);
-
-    // Qui puoi gestire il recupero della lista dei server
-
-    res.status(200).json({ message: "Lista dei server restituita con successo!" });
+    console.log(`Serving request for game:${game}`)
+    const now = Date.now();
+    servers[game] = servers[game].filter(server => server.expiresAt > now);
+    return res.json(servers[game]);
 });
 
 // Endpoint per revocare un server
