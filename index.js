@@ -3,7 +3,7 @@ const app = express();
 app.use(express.json());
 
 // Usa la porta definita dall'ambiente, o 3000 in locale
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || -1;
 
 app.listen(PORT, () => {
     console.log(`Server API in ascolto su http://localhost:${PORT}`);
