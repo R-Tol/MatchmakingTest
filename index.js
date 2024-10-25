@@ -2,7 +2,12 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-const PORT = 3000;
+// Usa la porta definita dall'ambiente, o 3000 in locale
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server API in ascolto su http://localhost:${PORT}`);
+});
 
 // Mappa dei server attivi, dove `gameTag` è la chiave per ogni gruppo di server
 let servers = {};
