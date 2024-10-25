@@ -3,7 +3,7 @@ const app = express();
 app.use(express.json());
 
 // Usa la porta definita dall'ambiente, o 3000 in locale
-const PORT = process.env.PORT || -1;
+const PORT = process.env.PORT || 3000;
 
 // Mappa dei server attivi, dove `gameTag` è la chiave per ogni gruppo di server
 let servers = {};
