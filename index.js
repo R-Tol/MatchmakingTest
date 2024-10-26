@@ -28,23 +28,26 @@ app.post("/publish", (req, res) => {
             serverInfo = desc;
         }
 
-        // Verifica che `description` contenga `hostuser`
-        const hostUser = serverInfo.description?.hostuser;
-        if (!hostUser) {
-            return res.status(400).json({ error: "Il campo 'hostuser' è richiesto in description." });
+        const { address, port } = serverInfo;
+
+        // Verifica che `address` e `port` esistano nel payload
+        if (!address || !port) {
+            return res.status(400).json({ error: "I campi 'address' e 'port' sono richiesti in desc." });
         }
 
         // Stampa di debug per i valori
         console.log("Gioco:", game);
-        console.log("Descrizione JSON (come oggetto):", serverInfo);
+        console.log("Indirizzo:", address);
+        console.log("Porta:", port);
         console.log("Timeout:", parsedTimeout);
-        console.log("Hostuser:", hostUser);
 
-        // Inizializza `servers[game]` se non esiste già e rimuovi eventuali server con lo stesso `hostuser`
+        // Inizializza `servers[game]` se non esiste già e rimuovi eventuali server con lo stesso `address` e `port`
         servers[game] = servers[game] || [];
-        servers[game] = servers[game].filter(server => server.data.description.hostuser !== hostUser);
+        servers[game] = servers[game].filter(
+            server => server.data.address !== address || server.data.port !== port
+        );
 
-        // Aggiungi il nuovo server con `desc` come stringa
+        // Aggiungi il nuovo server con `desc` come oggetto
         servers[game].push({
             data: serverInfo,
             expiresAt: Date.now() + parsedTimeout * 1000,
@@ -79,18 +82,43 @@ app.get("/list", (req, res) => {
     return res.json(activeDescriptions);
 });
 
-// Endpoint per revocare un server
 app.post('/revoke', (req, res) => {
-    const { game, address, port } = req.body;
-    if (!game || !address || !port || !servers[game]) {
-        return res.status(400).json({ error: 'Dati incompleti.' });
+    try {
+        console.log("Dati ricevuti dal client per rimozione:", req.body);
+
+        const { game, desc, } = req.body;
+
+        // Assicura che `desc` sia interpretato come oggetto
+        let serverInfo;
+        if (typeof desc === 'string') {
+            serverInfo = JSON.parse(desc);
+        } else {
+            serverInfo = desc;
+        }
+
+        const { address, port } = serverInfo;
+
+        // Verifica che `address` e `port` esistano nel payload
+        if (!address || !port) {
+            return res.status(400).json({ error: "I campi 'address' e 'port' sono richiesti in desc." });
+        }
+
+        // Stampa di debug per i valori
+        console.log("Gioco:", game);
+        console.log("Indirizzo:", address);
+        console.log("Porta:", port);
+
+        // Inizializza `servers[game]` se non esiste già e rimuovi eventuali server con lo stesso `address` e `port`
+        servers[game] = servers[game] || [];
+        servers[game] = servers[game].filter(
+            server => server.data.address !== address || server.data.port !== port
+        );
+
+        res.status(200).json({ message: "Server rimosso con successo!" });
+    } catch (error) {
+        console.error("Errore durante la pubblicazione:", error);
+        res.status(500).json({ error: "Errore interno del server" });
     }
-
-    servers[game] = servers[game].filter(server => 
-        !(server.address === address && server.port === port)
-    );
-
-    return res.json({ message: 'Server revocato con successo.' });
 });
 
 app.listen(PORT, () => {
